@@ -178,6 +178,22 @@ def add():
 def login():
     return render_template('login.html')
 
+@app.route('/get-all-managers')
+def get_managers():
+	sql =	'select U.full_name, AM.managing_postal_code, Addr.borough\
+   			from area_managers AM\
+   			JOIN users U on AM.email = U.email\
+   			JOIN address_management Addr on Addr.postal_code = AM.managing_postal_code;'
+	
+	cursor = g.conn.execute(sql)
+	res = []
+	for result in cursor:
+		res.append({'name':result['full_name'], 'pc': result['managing_postal_code'], 'br': result['borough']})  # can also be accessed using result[0]
+	cursor.close()
+    
+	context = dict(managers = res)
+	return render_template('manager_list.html', **context)
+
 
 if __name__ == "__main__":
 	import click
