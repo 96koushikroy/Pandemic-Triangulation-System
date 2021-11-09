@@ -501,7 +501,7 @@ def load_user_health_records_manager(medical_id):
 		res.append({'medical_id': medical_id,'r_id':result['r_id'],'email':result['email'], 'test_name':result['test_name'], 'test_result': result['test_result'], 'test_date_time': result['test_date_time']})  # can also be accessed using result[0]
 	
 	cursor.close()
-	context = dict(records = res)
+	context = dict(records = res, medical_id = medical_id)
 	return render_template('manage_specific_health_records.html', **context)
 ###########
 @app.route('/delete-health-records/<record_id>', methods=['GET'])
