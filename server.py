@@ -675,11 +675,42 @@ def load_signup():
 
 	return render_template('general_user_signup.html')
 ###############
-@app.route('/signup/', methods=['POST'])
+@app.route('/signup', methods=['POST'])
 def process_signup():
-	
+	email = request.form['email']
+	password = request.form['pass']
+	medical_id = request.form['medical_id']
+	dob = request.form['dob']
+	full_name = request.form['fullname']
+	apt = request.form['apt']
+	street = request.form['street']
+	borough = request.form['borough']
+	postalcode = request.form['postalcode']
 
-	return render_template('general_user_signup.html')
+	sql1 = f"select count(*) from general_users where medical_id = {medical_id}"
+	medCnt = g.conn.execute(sql1).scalar()
+	if(medCnt > 0):
+		flash('User already exists')
+		return redirect('/signup')
+
+	sql1 = f"select count(*) from users where email = '{email}'"
+	userCnt = g.conn.execute(sql1).scalar()
+	if(userCnt > 0):
+		flash('User already exists')
+		return redirect('/signup')
+
+	sql2 = f"insert into address_management (apt, street, borough, postal_code) values ({apt}, '{street}', '{borough}', {postalcode}) RETURNING address_id"
+	cursor = g.conn.execute(sql2)
+	[new_id] = cursor.fetchone()
+
+	sql3 = f"insert into users (email, password, full_name, dob) values ('{email}', '{password}', '{full_name}', '{dob}')"
+	g.conn.execute(sql3)
+	
+	sql4 = f"insert into general_users (medical_id, email, address_id) values ({medical_id}, '{email}', {new_id})"
+	g.conn.execute(sql4)
+
+	flash('Signed up successfully')
+	return redirect('/login')
 ###############
 if __name__ == "__main__":
 	import click
