@@ -1,0 +1,35 @@
+{% extends "base_logged_in.html" %}
+
+{% block title %}Area Stats{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <h2>Positive Cases in my Area (per Building)</h2>
+                <hr>
+                <table class="table">
+                    <thead>
+                        <th>Street Addr</th>
+                        <th>Disease/Test Name</th>
+                        <th>Test Result</th>
+                        <th>Count</th>
+                    </thead>
+                    <tbody>
+                        {% for r in tests %}
+			                <tr>
+                                <td>{{r['street']}}</td>
+                                <td>{{r['test_name']}}</td>
+                                <td>{{r['test_results']}}</td>
+                                <td>{{r['count']}}</td>
+                            </tr>
+			            {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+    </div>
+{% endblock %}

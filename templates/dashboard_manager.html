@@ -1,0 +1,23 @@
+{% extends "base_logged_in.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <h2>Manager Dashboard</h2>
+                <br>
+                <a type="button" href="/manage-health-records" class="btn btn-primary btn-lg">Manage Health Records</a>
+                <a type="button" href="/my-area-stats" class="btn btn-primary btn-lg">My Area Stats</a>
+                <br><br>
+                <a type="button" href="/prevalent-diseases" class="btn btn-primary btn-lg">Prevalent diseases in NY</a>
+                <a type="button" class="btn btn-primary btn-lg" href="/logout">Logout</a>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+    </div>
+
+{% endblock %}

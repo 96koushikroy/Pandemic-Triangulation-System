@@ -1,0 +1,59 @@
+{% extends "base_logged_in.html" %}
+
+{% block title %}Edit Health Record{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <h2>Edit Health Record {{record_id}}</h2>
+                <hr>
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                   {% for message in messages %}
+                    <div class="card">
+                        <div class="card-body">
+                            {{ message }}
+                        </div>
+                    </div>   
+                   
+                    <br>
+                   {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form action="/edit-health-records/{{record_id}}" method="post">
+                    <label for="test_name" class="form-label">Test Names:</label>
+                    <select class="form-select" name="test_name" id="test_name">
+                        <option value="{{record[0]['d_id']}}">{{record[0]['test_name']}}</option>
+                        {% for t in tests %}
+                            <option value="{{t['d_id']}}">{{t['test_name']}}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <br>
+                    <label for="test_result" class="form-label">Test Result:</label>
+                    <select class="form-select" name="test_result" id="test_result">
+                        <option value="{{record[0]['test_result']}}">{{record[0]['test_result']}}</option>
+                        <option value="True">Positive</option>
+                        <option value="False">Negative</option>
+                    </select>
+                    <br>
+                    <label for="time" class="form-label">Test Date</label>
+                    <input type="text" class="form-control" name="date" value="{{record[0]['date']}}" id="date" placeholder="YYYY-MM-DD">
+                    <br>
+                    <label for="time" class="form-label">Test Time</label>
+                    <input type="text" class="form-control" name="time" id="time" value="{{record[0]['time']}}" placeholder="HH:MM">
+                    <br>
+
+                    <button type="submit" class="btn btn-primary mb-3">Update Record</button>
+                </form>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+    </div>
+
+{% endblock %}

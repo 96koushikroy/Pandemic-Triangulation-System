@@ -1,0 +1,52 @@
+{% extends "base_logged_in.html" %}
+
+{% block title %}Manage Health Records{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <h2>People in Managing Area</h2>
+                <hr>
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                   {% for message in messages %}
+                    <div class="card">
+                        <div class="card-body">
+                            {{ message }}
+                        </div>
+                    </div>   
+                   
+                    <br>
+                   {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <table class="table">
+                    <thead>
+                        <th>Name</th>
+                        <th>email</th>
+                        <th>DoB</th>
+                        <th>Address</th>
+                        <th>Manage</th>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+			                <tr>
+                                <td>{{r['name']}}</td>
+                                <td>{{r['email']}}</td>
+                                <td>{{r['dob']}}</td>
+                                <td>{{r['address']}}</td>
+                                <td><a href="/manage-health-records/{{r['medical_id']}}" type="button" class="btn btn-warning btn-sm">Manage</a></td>
+                            </tr>
+			            {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+
+
+{% endblock %}

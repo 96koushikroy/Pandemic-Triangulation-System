@@ -221,6 +221,8 @@ def load_dashboard():
 
 	if session.get('privilege') == 1:
 		return render_template('dashboard_user.html')
+	else:
+		return render_template('dashboard_manager.html')
 
 ###########
 @app.route('/add-routine', methods=['GET'])
@@ -424,7 +426,6 @@ def load_user_contact_traces():
 	context = dict(locations = traced_locations)
 	return render_template('user_contact_tracing.html', **context)
 ############
-
 @app.route('/logout', methods=['GET'])
 def logout():
 	if session.get('logged_in'):
@@ -435,6 +436,11 @@ def logout():
 ###############
 @app.route('/get-all-managers')
 def get_managers():
+
+	if not session.get('logged_in'):
+		flash('Login to continue')
+		return redirect('/login')
+
 	sql =	'select U.full_name, AM.managing_postal_code, Addr.borough\
    			from area_managers AM\
    			JOIN users U on AM.email = U.email\
@@ -449,7 +455,232 @@ def get_managers():
 	context = dict(managers = res)
 	return render_template('manager_list.html', **context)
 #################
+@app.route('/manage-health-records', methods=['GET'])
+def load_health_records():
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
 
+	manager_email = session['email']
+	sql = f"select managing_postal_code from area_managers where email = '{manager_email}'"
+	managing_postal_code = g.conn.execute(sql).scalar()
+	sql1 = f"SELECT * from general_users g\
+			join users u on g.email=u.email\
+			join address_management a on g.address_id=a.address_id\
+			where a.postal_code={managing_postal_code}"
+	
+	cursor = g.conn.execute(sql1)
+	
+	res = []
+	
+	for result in cursor:
+		addr = result['apt'] + ', ' + result['street'] + ', ' + result['borough'] + ', ' + str(result['postal_code'])
+		res.append({'medical_id':result['medical_id'], 'name':result['full_name'], 'email': result['email'], 'dob': result['dob'],'address': addr})  # can also be accessed using result[0]
+	
+	cursor.close()
+	context = dict(records = res)
+	return render_template('manage_health_records.html', **context)
+###########
+@app.route('/manage-health-records/<medical_id>', methods=['GET'])
+def load_user_health_records_manager(medical_id):
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	sql1 = f"SELECT h.r_id, d.test_name, h.test_result, h.test_date_time, u.email from health_records h\
+			join general_users g on h.medical_id=g.medical_id\
+			join users u on g.email=u.email\
+			join disease_tests d on h.d_id=d.d_id\
+			where h.medical_id={medical_id}"
+	
+	cursor = g.conn.execute(sql1)
+	
+	res = []
+	
+	for result in cursor:
+		res.append({'medical_id': medical_id,'r_id':result['r_id'],'email':result['email'], 'test_name':result['test_name'], 'test_result': result['test_result'], 'test_date_time': result['test_date_time']})  # can also be accessed using result[0]
+	
+	cursor.close()
+	context = dict(records = res)
+	return render_template('manage_specific_health_records.html', **context)
+###########
+@app.route('/delete-health-records/<record_id>', methods=['GET'])
+def process_delete_health_record(record_id):
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 2:
+		flash('Not Authorized')
+		return redirect('/login')
+
+	sql = f"delete from health_records where r_id = {record_id}"
+	g.conn.execute(sql)
+	flash('Record Deleted Successfully')
+	return redirect(f'/manage-health-records') #fix the redirect hereee
+###############
+@app.route('/add-health-record/<medical_id>', methods=['GET'])
+def load_add_health_record(medical_id):
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 2:
+		flash('Not Authorized')
+		return redirect('/login')
+
+
+	sql = f"select * from disease_tests"
+
+	tests = []
+	cursor = g.conn.execute(sql)
+	for result in cursor:
+		tests.append({'test_name': result['test_name'], 'd_id': result['d_id']})
+
+	context = dict(med_id=medical_id, tests=tests)
+
+	return render_template('add_health_record.html', **context)
+###############
+@app.route('/add-health-record/<medical_id>', methods=['POST'])
+def process_add_health_record(medical_id):
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 2:
+		flash('Not Authorized')
+		return redirect('/login')
+
+	test_id = request.form['test_name']
+	test_result = bool(request.form['test_result'])
+	test_date_time = request.form['date'] + ' ' + request.form['time']
+
+	sql1 = f"insert into health_records (medical_id, d_id, test_result, test_date_time) values ({medical_id}, {test_id}, {test_result}, '{test_date_time}')"
+	g.conn.execute(sql1)
+	flash('Record Added Successfully')
+	return redirect(f"/add-health-record/{medical_id}")
+###############
+@app.route('/edit-health-records/<record_id>', methods=['GET'])
+def load_edit_health_record(record_id):
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 2:
+		flash('Not Authorized')
+		return redirect('/login')
+
+	sql1 = f"SELECT h.r_id, d.d_id, d.test_name, h.test_result, h.test_date_time, u.email from health_records h\
+			join general_users g on h.medical_id=g.medical_id\
+			join users u on g.email=u.email\
+			join disease_tests d on h.d_id=d.d_id\
+			where h.r_id={record_id}"
+	cursor = g.conn.execute(sql1)
+
+	res = []
+	for r in cursor:
+		date_time = (r['test_date_time']).strftime('%Y-%m-%d %H:%M').split()
+		res.append({'d_id': r['d_id'], 'test_name': r['test_name'], 'test_result': r['test_result'], 'date': date_time[0], 'time': date_time[1]})
+	cursor.close()
+
+	sql = f"select * from disease_tests"
+	tests = []
+	cursor = g.conn.execute(sql)
+	for result in cursor:
+		tests.append({'test_name': result['test_name'], 'd_id': result['d_id']})
+	cursor.close()
+
+	context = dict(record_id=record_id, tests=tests, record=res)
+	return render_template('edit_health_records.html', **context)
+#############
+@app.route('/edit-health-records/<record_id>', methods=['POST'])
+def process_edit_health_record(record_id):
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 2:
+		flash('Not Authorized')
+		return redirect('/login')
+
+	test_id = request.form['test_name']
+	test_result = bool(request.form['test_result'])
+	test_date_time = request.form['date'] + ' ' + request.form['time']
+
+	sql1 = f"update health_records set d_id={test_id}, test_result={test_result}, test_date_time='{test_date_time}' where r_id={record_id}"
+	g.conn.execute(sql1)
+	flash('Record Updated Successfully')
+	return redirect(f"/edit-health-records/{record_id}")
+###############
+@app.route('/my-area-stats/', methods=['GET'])
+def load_manager_area_stats():
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 2:
+		flash('Not Authorized')
+		return redirect('/login')
+
+	manager_email = session['email']
+	sql = f"select managing_postal_code from area_managers where email = '{manager_email}'"
+	managing_postal_code = g.conn.execute(sql).scalar()
+
+	sql = f"SELECT d.test_name, h.test_result, a.street, count(*) from health_records h\
+			join general_users g on h.medical_id=g.medical_id\
+			join users u on g.email=u.email\
+			join disease_tests d on h.d_id=d.d_id\
+			join address_management a on a.address_id=g.address_id\
+			where a.postal_code={managing_postal_code} and h.test_result=True\
+			GROUP by d.test_name, h.test_result, a.street"
+
+	results = []
+	cursor = g.conn.execute(sql)
+	for result in cursor:
+		results.append({'test_name': result['test_name'], 'test_results': result['test_result'], 'street': result['street'], 'count': result['count']})
+
+	context = dict(tests=results)
+
+	return render_template('manager_area_stats.html', **context)
+###############
+@app.route('/prevalent-diseases/', methods=['GET'])
+def load_prevalent_diseases():
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 2:
+		flash('Not Authorized')
+		return redirect('/login')
+
+	sql = f"SELECT dt.test_name, count(hr.d_id)\
+			FROM health_records AS hr\
+			JOIN disease_tests dt ON hr.d_id=dt.d_id\
+			WHERE hr.test_result = True AND hr.test_date_time > (NOW() - interval '14 days')\
+			GROUP BY dt.test_name;"
+
+	results = []
+	cursor = g.conn.execute(sql)
+	for result in cursor:
+		results.append({'test_name': result['test_name'], 'count': result['count']})
+
+	context = dict(tests=results)
+
+	return render_template('prevalent_diseases.html', **context)
+###############
+@app.route('/signup/', methods=['GET'])
+def load_signup():
+	if session.get('logged_in'):
+		return redirect('/dashboard')
+
+	return render_template('general_user_signup.html')
+###############
+@app.route('/signup/', methods=['POST'])
+def process_signup():
+	
+
+	return render_template('general_user_signup.html')
+###############
 if __name__ == "__main__":
 	import click
 

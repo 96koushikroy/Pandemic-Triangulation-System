@@ -1,0 +1,39 @@
+{% extends "base_logged_in.html" %}
+
+{% block title %}Manage Health Records{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <h2>Health records of {{records[0]['email']}}</h2>
+                <hr>
+                <a href="/add-health-record/{{records[0]['medical_id']}}" type="button" class="btn btn-primary">Add Record</a>
+                <table class="table">
+                    <thead>
+                        <th>Test Name</th>
+                        <th>Result</th>
+                        <th>Test Date Time</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+			                <tr>
+                                <td>{{r['test_name']}}</td>
+                                <td>{{r['test_result']}}</td>
+                                <td>{{r['test_date_time']}}</td>
+                                <td><a href="/edit-health-records/{{r['r_id']}}" type="button" class="btn btn-warning btn-sm">Edit</a></td>
+                                <td><a href="/delete-health-records/{{r['r_id']}}" type="button" class="btn btn-danger btn-sm">Delete</a></td>
+                            </tr>
+			            {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+
+
+{% endblock %}

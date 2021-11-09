@@ -1,0 +1,31 @@
+{% extends "base_logged_in.html" %}
+
+{% block title %}Prevalent Diseases{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <h2>Prevalent Diseases in NYC since last 7 days</h2>
+                <hr>
+                <table class="table">
+                    <thead>
+                        <th>Disease/Test Name</th>
+                        <th>Count</th>
+                    </thead>
+                    <tbody>
+                        {% for r in tests %}
+			                <tr>
+                                <td>{{r['test_name']}}</td>
+                                <td>{{r['count']}}</td>
+                            </tr>
+			            {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+    </div>
+{% endblock %}

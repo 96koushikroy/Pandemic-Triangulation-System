@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}User Signup{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <h2>General User Signup</h2>
+                <hr>
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                   {% for message in messages %}
+                    <div class="card">
+                        <div class="card-body">
+                            {{ message }}
+                        </div>
+                    </div>   
+                   
+                    <br>
+                   {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form action="/signup" method="post">
+                    <label for="fullname" class="form-label">Name</label>
+                    <input type="text" class="form-control" name="fullname" id="fullname" placeholder="John Doe">
+
+                    <label for="emailaddr" class="form-label">Email address</label>
+                    <input type="email" class="form-control" name="email" id="emailaddr" placeholder="name@example.com">
+
+
+                    <label for="apt" class="form-label">Apt.</label>
+                    <input type="text" class="form-control" name="apt" id="apt" placeholder="22">
+
+                    <label for="street" class="form-label">Street</label>
+                    <input type="text" class="form-control" name="street" id="street" placeholder="123 Example Lane">
+
+                    <label for="borough" class="form-label">Borough</label>
+                    <select name="borough" id="borougn" class="form-select">
+                        <option value="Manhattan">Manhattan</option>
+                        <option value="Brooklyn">Brooklyn</option>
+                        <option value="Queens">Queens</option>
+                        <option value="Bronx">Bronx</option>
+                        <option value="Staten Island">Staten Island</option>
+                      </select>
+
+                    <label for="postalcode" class="form-label">Postal Code</label>
+                    <input type="text" class="form-control" name="postalcode" id="postalcode" placeholder="12345">
+
+                    <label for="passw" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="pass" id="passw" placeholder="***">
+                    <br>
+
+                    <button type="submit" class="btn btn-primary mb-3">Submit</button>
+                </form>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+    </div>
+{% endblock %}
