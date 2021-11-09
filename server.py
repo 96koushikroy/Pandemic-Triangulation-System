@@ -712,6 +712,7 @@ def process_signup():
 	flash('Signed up successfully')
 	return redirect('/login')
 ###############
+
 if __name__ == "__main__":
 	import click
 
@@ -739,4 +740,4 @@ if __name__ == "__main__":
 		app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
 
-# run()
+run()
