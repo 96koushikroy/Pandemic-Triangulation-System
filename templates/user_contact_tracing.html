@@ -1,33 +1,29 @@
 {% extends "base_logged_in.html" %}
 
-{% block title %}Area Managers{% endblock %}
+{% block title %}Contact Tracing{% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="row">
             <div class="col-md-2"></div>
             <div class="col-md-8 text-center">
-                <br>
-                <h2>List of Area Managers</h2>
+                <h2>Notifications of Contact Traces</h2>
                 <hr>
                 <table class="table text-center">
                     <thead>
-                        <th>Name</th>
-                        <th>Managing Postal Code</th>
-                        <th>Borough</th>
+                        <th>Location</th>
+                        <th>Date Time</th>
                     </thead>
                     <tbody>
-                        {% for m in managers %}
-			                <tr>
-                                <td>{{m['name']}}</td>
-                                <td>{{m['pc']}}</td>
-                                <td>{{m['br']}}</td>
+                        {% for l in locations %}
+                            <tr>
+                                <td>{{l['location']}}</td>
+                                <td>{{l['time']}}</td>
                             </tr>
-			            {% endfor %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
-
             <div class="col-md-2"></div>
         </div>
     </div>

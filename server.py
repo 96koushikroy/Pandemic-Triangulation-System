@@ -110,7 +110,8 @@ def index():
 
 	# DEBUG: this is debugging code to see what request looks like
 	print (request.args)
-
+	if session.get('logged_in') is not None:
+		return redirect('/dashboard')
 
 	#
 	# example of a database query
@@ -340,6 +341,90 @@ def process_delete_routine(routine_id):
 	flash('Record Deleted Successfully')
 	return redirect('/manage-routine')
 ############
+@app.route('/user-health-records', methods=['GET'])
+def load_user_health_records():
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 1:
+		flash('Not Authorized')
+		return redirect('/login')
+	
+	medical_id = session['user_id']
+
+	sql = f"select h.r_id, d.test_name, h.medical_id, h.test_result, h.test_date_time from health_records h \
+			join disease_tests d on d.d_id=h.d_id\
+			where h.medical_id = {medical_id}"
+	cursor = g.conn.execute(sql)
+	res = []
+	for result in cursor:
+		res.append({'rid': result['r_id'],'test_name':result['test_name'], 'test_result': result['test_result'], 'dt': result['test_date_time']})  # can also be accessed using result[0]
+	cursor.close()
+	context = dict(records = res)
+	return render_template('user_health_records.html', **context)
+############
+@app.route('/contact-trace', methods=['GET'])
+def load_user_contact_traces():
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 1:
+		flash('Not Authorized')
+		return redirect('/login')
+	
+	medical_id = session['user_id']
+
+	sql_positive_cases = f"select * from health_records where test_result=True"
+	cursor = g.conn.execute(sql_positive_cases)
+
+	positive_med_ids = []
+	for result in cursor:
+		positive_med_ids.append(result['medical_id'])  # can also be accessed using result[0]
+	cursor.close()
+
+	contacting_emails = []
+
+	for med_id in positive_med_ids:
+		sql = f"SELECT general_users.email, R1.medical_id, R1.location, R1.time\
+				 FROM  routines R1\
+				 JOIN general_users ON general_users.medical_id = R1.medical_id\
+				 WHERE R1.location IN\
+				 (SELECT R2.location\
+				 FROM routines R2\
+				 WHERE R2.medical_id = {med_id})\
+				 AND R1.medical_id <> {med_id}\
+				 AND R1.time-(SELECT R2.time\
+				 FROM routines R2\
+				 WHERE R2.medical_id = {med_id} AND R2.location=R1.location) < '1 day';"
+		# sql = 	"SELECT general_users.email, R1.medical_id, R1.location, R1.time\
+		# 		 FROM  routines R1\
+		# 		 JOIN general_users ON general_users.medical_id = R1.medical_id\
+		# 		 WHERE R1.location IN\
+		# 		 (SELECT R2.location\
+		# 		 FROM routines R2\
+		# 		 WHERE R2.medical_id = 997)\
+		# 		 AND R1.medical_id <> 997\
+		# 		 AND R1.time-(SELECT R2.time\
+		# 		 FROM routines R2\
+		# 		 WHERE R2.medical_id = 997) < '1 day';"
+		cursor1 = g.conn.execute(sql)
+		for result in cursor1:
+			contacting_emails.append((result['email'], result['location'], result['time']))
+		cursor1.close()
+
+	traced_locations = []
+
+	for p in contacting_emails:
+		if p[0] == session['email']:
+			traced_locations.append({'location': p[1], 'time': p[2]})
+
+
+	context = dict(locations = traced_locations)
+	return render_template('user_contact_tracing.html', **context)
+############
+
 @app.route('/logout', methods=['GET'])
 def logout():
 	if session.get('logged_in'):

@@ -1,33 +1,31 @@
 {% extends "base_logged_in.html" %}
 
-{% block title %}Area Managers{% endblock %}
+{% block title %}Health Records{% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="row">
             <div class="col-md-2"></div>
             <div class="col-md-8 text-center">
-                <br>
-                <h2>List of Area Managers</h2>
+                <h2>Health Records</h2>
                 <hr>
                 <table class="table text-center">
                     <thead>
-                        <th>Name</th>
-                        <th>Managing Postal Code</th>
-                        <th>Borough</th>
+                        <th>Test Name</th>
+                        <th>Test Date Time</th>
+                        <th>Test Result</th>
                     </thead>
                     <tbody>
-                        {% for m in managers %}
-			                <tr>
-                                <td>{{m['name']}}</td>
-                                <td>{{m['pc']}}</td>
-                                <td>{{m['br']}}</td>
+                        {% for r in records %}
+                            <tr>
+                                <td>{{r['test_name']}}</td>
+                                <td>{{r['dt']}}</td>
+                                <td>{{r['test_result']}}</td>
                             </tr>
-			            {% endfor %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
-
             <div class="col-md-2"></div>
         </div>
     </div>
