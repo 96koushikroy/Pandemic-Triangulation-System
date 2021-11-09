@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Add Routine{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <h2>Add Routine</h2>
+                <hr>
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                   {% for message in messages %}
+                    <div class="card">
+                        <div class="card-body">
+                            {{ message }}
+                        </div>
+                    </div>   
+                   
+                    <br>
+                   {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form action="/add-routine" method="post">
+                    <label for="location" class="form-label">Location:</label>
+                    <input type="text" class="form-control" name="location" id="location" placeholder="XYZ Restaurant, Manhattan">
+                    <br>
+                    <label for="time" class="form-label">Date</label>
+                    <input type="text" class="form-control" name="date" id="date" placeholder="YYYY-MM-DD">
+                    <br>
+                    <label for="time" class="form-label">Time</label>
+                    <input type="text" class="form-control" name="time" id="time" placeholder="HH:MM">
+                    <br>
+
+                    <button type="submit" class="btn btn-primary mb-3">Add Routine</button>
+                </form>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+    </div>
+
+{% endblock %}

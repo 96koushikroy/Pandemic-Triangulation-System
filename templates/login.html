@@ -9,13 +9,28 @@
             <div class="col-md-4">
                 <h2>Login</h2>
                 <hr>
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                   {% for message in messages %}
+                    <div class="card">
+                        <div class="card-body">
+                            {{ message }}
+                        </div>
+                    </div>   
+                   
+                    <br>
+                   {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
                 <form action="/login" method="post">
                     <label for="emailaddr" class="form-label">Email address</label>
-                    <input type="email" class="form-control" id="emailaddr" placeholder="name@example.com">
+                    <input type="email" class="form-control" name="email" id="emailaddr" placeholder="name@example.com">
 
                     <label for="passw" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="passw" placeholder="***">
-
+                    <input type="password" class="form-control" name="pass" id="passw" placeholder="***">
+                    <br>
 
                     <button type="submit" class="btn btn-primary mb-3">Login</button>
                 </form>

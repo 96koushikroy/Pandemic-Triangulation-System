@@ -17,11 +17,15 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, request, render_template, g, redirect, Response, session, flash
+from flask_session import Session
+import datetime
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
-
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
 #
 # The following is a dummy URI that does not connect to a valid database. You will need to modify it to connect to your Part 2 database in order to use the data.
@@ -160,10 +164,14 @@ def index():
 # Notice that the function name is another() rather than index()
 # The functions for each app.route need to have different names
 #
-@app.route('/another')
-def another():
-	return render_template("another.html")
 
+def get_user_id(email):
+	if session['privilege'] == 1:
+		sql = f"select medical_id from general_users where email='{email}'"
+	else:
+		sql = f"select u_id from area_managers where email = '{email}'"
+	cursor = g.conn.execute(sql).scalar()
+	return cursor
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
@@ -174,10 +182,172 @@ def add():
 	return redirect('/')
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET'])
 def login():
-    return render_template('login.html')
+	if session.get('logged_in') is not None:
+		return redirect('/dashboard')
+	return render_template('login.html')
 
+@app.route('/login', methods=['POST'])
+def login_post():
+	email = request.form['email']
+	password = request.form['pass']
+
+	sql = f"select * from users where email = '{email}' and password = '{password}';"
+	cursor = g.conn.execute(sql).scalar()
+
+	if(cursor is not None):
+		sql1 = f"select count(*) from area_managers where email = '{email}';"
+		cursor1 = g.conn.execute(sql1).scalar()
+
+		session['logged_in'] = True
+		session['email'] = email
+		session['privilege'] = 2 if cursor1 > 0 else 1 
+		session['user_id'] = get_user_id(email)
+
+
+		return redirect('/dashboard')
+	else:
+		flash('Incorrect Credentials')
+		return redirect('/login')
+
+#########
+@app.route('/dashboard', methods=['GET'])
+def load_dashboard():
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') == 1:
+		return render_template('dashboard_user.html')
+
+###########
+@app.route('/add-routine', methods=['GET'])
+def load_add_routine():
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 1:
+		flash('Not Authorized')
+		return redirect('/login')
+	
+	return render_template('add_routine.html')
+###########
+
+@app.route('/add-routine', methods=['POST'])
+def post_add_routine():
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 1:
+		flash('Not Authorized')
+		return redirect('/login')
+	
+	location = request.form['location']
+	date = request.form['date']
+	time = request.form['time']
+	medical_id = session['user_id']
+
+	date_time = date + ' ' + time
+
+	sql = f"insert into routines (medical_id, location, time) values ({medical_id},'{location}','{date_time}')"
+	g.conn.execute(sql)
+	flash('Data Added Successfully')
+	return redirect('/add-routine')
+###########
+@app.route('/manage-routine', methods=['GET'])
+def load_manage_routine():
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 1:
+		flash('Not Authorized')
+		return redirect('/login')
+	
+	medical_id = session['user_id']
+
+	sql = f"select * from routines where medical_id = {medical_id}"
+	cursor = g.conn.execute(sql)
+	res = []
+	for result in cursor:
+		res.append({'rid': result['routine_id'],'location':result['location'], 'dt': result['time']})  # can also be accessed using result[0]
+	cursor.close()
+	context = dict(routines = res)
+	return render_template('manage_routine.html', **context)
+############
+@app.route('/edit-routine/<routine_id>', methods=['GET'])
+def load_edit_routine(routine_id):
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 1:
+		flash('Not Authorized')
+		return redirect('/login')
+	
+	medical_id = session['user_id']
+
+	sql = f"select * from routines where routine_id = {routine_id}"
+	cursor = g.conn.execute(sql)
+	res = []
+	for result in cursor:
+		date_time = (result['time']).strftime('%Y-%m-%d %H:%M').split()
+		print(date_time)
+		res.append({'rid': result['routine_id'],'location':result['location'], 'date': date_time[0], 'time': date_time[1]})  # can also be accessed using result[0]
+	cursor.close()
+	context = dict(routines = res)
+	return render_template('edit_routine.html', **context)
+############
+@app.route('/edit-routine/<routine_id>', methods=['POST'])
+def process_edit_routine(routine_id):
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 1:
+		flash('Not Authorized')
+		return redirect('/login')
+	
+	location = request.form['location']
+	date = request.form['date']
+	time = request.form['time']
+	medical_id = session['user_id']
+
+	date_time = date + ' ' + time
+
+	sql = f"update routines set location = '{location}', time = '{date_time}' where routine_id = {routine_id};"
+	g.conn.execute(sql)
+	flash('Record Updated Successfully')
+	return redirect('/manage-routine')
+############
+@app.route('/delete-routine/<routine_id>', methods=['GET'])
+def process_delete_routine(routine_id):
+	if not session.get('logged_in'):
+		flash('Not Logged In')
+		return redirect('/login')
+
+	if session.get('privilege') != 1:
+		flash('Not Authorized')
+		return redirect('/login')
+	
+	medical_id = session['user_id']
+
+	sql = f"delete from routines where routine_id = {routine_id}"
+	g.conn.execute(sql)
+	flash('Record Deleted Successfully')
+	return redirect('/manage-routine')
+############
+@app.route('/logout', methods=['GET'])
+def logout():
+	if session.get('logged_in'):
+		session.pop('logged_in')
+		session.pop('email')
+		flash('Logged out successfully')
+	return redirect('/login')
+###############
 @app.route('/get-all-managers')
 def get_managers():
 	sql =	'select U.full_name, AM.managing_postal_code, Addr.borough\
@@ -193,7 +363,7 @@ def get_managers():
     
 	context = dict(managers = res)
 	return render_template('manager_list.html', **context)
-
+#################
 
 if __name__ == "__main__":
 	import click
@@ -222,4 +392,4 @@ if __name__ == "__main__":
 		app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
 
-run()
+# run()

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Routines{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <br>
+                <h2>Manage Routines</h2>
+                <hr>
+                
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                   {% for message in messages %}
+                    <div class="card">
+                        <div class="card-body">
+                            {{ message }}
+                        </div>
+                    </div>   
+                   
+                    <br>
+                   {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <table class="table text-center">
+                    <thead>
+                        <th>Location</th>
+                        <th>Date Time</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </thead>
+                    <tbody>
+                        {% for r in routines %}
+			                <tr>
+                                <td>{{r['location']}}</td>
+                                <td>{{r['dt']}}</td>
+                                <td><a href="/edit-routine/{{r['rid']}}" type="button" class="btn btn-warning btn-sm">Edit</a></td>
+                                <td><a href="/delete-routine/{{r['rid']}}" type="button" class="btn btn-danger btn-sm">Delete</a></td>
+                            </tr>
+			            {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-2"></div>    
+        </div>
+    </div>
+
+{% endblock %}

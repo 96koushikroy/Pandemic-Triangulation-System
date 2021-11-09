@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <h2>User Dashboard</h2>
+                <br>
+                <a type="button" href="/add-routine" class="btn btn-primary btn-lg">Add Routine</a>
+                <a type="button" href="/manage-routine" class="btn btn-primary btn-lg">Manage Routine</a>
+                <a type="button" class="btn btn-primary btn-lg">Contact Trace</a>
+                <br><br>
+                <a type="button" class="btn btn-primary btn-lg">Health/Test Records</a>
+                <a type="button" class="btn btn-primary btn-lg" href="/logout">Logout</a>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+    </div>
+
+{% endblock %}
