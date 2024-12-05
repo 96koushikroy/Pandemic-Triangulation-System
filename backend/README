@@ -1,0 +1,26 @@
+Project Submission by Koushik Roy, UNI: kr2960
+
+Postgres Account Info:
+Account: kr2960
+database: proj1part2
+
+URL: http://34.138.32.155:8111/
+
+Parts in Proposal that are implemented:
+ 1. Login for Users & Area Managers
+ 2. Signup for Users
+ 3. Maintain Address Repository of Users for further statistics for managers
+ 4. Area Managers: Create, Read, Update, and Delete (CRUD) **Health Records**
+ 5. Users: Can manage (CRUD) their daily routines of the places visited
+ 6. Contact Tracing: Use routines and health records to identify the users that need to be notified of exposure
+
+Parts in Proposal that are not implemented:
+ 1. Quarantine Module: As per the contingency plan, as the other team member left Columbia, so, I didn't implement the Quarantine module.
+
+Parts not in proposal that are implemented:
+ 1. Statistics for area managers showing the most prevalent dieseases in NYC using information from the tables.
+ 2. Statistics for area managers showing the diesease distribution in their specific area.
+
+Interesting pages:
+ 1. After a user logs in, in the Contact Trace page, using the routine that the logged in user has provided, and the routine provided by other users (using routines page), the logged in user would be notified if any of the other users who have had similar routines has been tested positive (using health records page by managers) for a virus. This is interesting because it helps one user to know if they have been exposed to a disease that may spread rapidly.
+ 2. After an area manager logs into the system, in the My Area Stats page, using the data input from the health records module, the manager can triangulate the "risky" zones in the managing area. This is interesting because by knowing the "risky" zones, the area manager can enforce further quarantine rules, movement restrictions which can help to stop a virus from spreading.

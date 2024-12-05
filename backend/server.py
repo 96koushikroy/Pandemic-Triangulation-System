@@ -38,7 +38,7 @@ Session(app)
 #
 #     DATABASEURI = "postgresql://biliris:foobar@104.196.152.219/proj1part2"
 #
-DATABASEURI = "postgresql://kr2960:dhaka3201@35.196.73.133/proj1part2"
+DATABASEURI = "postgresql://postgres:kkkk@localhost/pandemic-triangulate"
 
 
 #
@@ -116,10 +116,10 @@ def index():
 	#
 	# example of a database query
 	#
-	cursor = g.conn.execute("SELECT name FROM test")
+	cursor = g.conn.execute(text("SELECT * FROM test"))
 	names = []
 	for result in cursor:
-		names.append(result['name'])  # can also be accessed using result[0]
+		names.append(result[0])  # can also be accessed using result[0]
 	cursor.close()
 
 	#
@@ -737,7 +737,7 @@ if __name__ == "__main__":
 
 		HOST, PORT = host, port
 		print ("running on %s:%d" % (HOST, PORT))
-		app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
+		app.run(host=HOST, port=PORT, debug=True, threaded=threaded)
 
 
 run()
